@@ -1,17 +1,21 @@
-# The Context-Preserving Assistant (Full-Stack Identity & API Access)
+# The Privacy-Aware RAG Bot (Auth0 FGA)
 
-An identity-aware personal assistant web application built with Express and Auth0 Universal Login. It demonstrates authenticated session preservation across internal first-party settings and external third-party API orchestration.
+An internal knowledge retrieval assistant (RAG) enforcing Fine-Grained Authorization (FGA / ReBAC) at the document level based on user identity, role, and classification before feeding context to an LLM.
 
-## Architecture & Flow
-1. User Authentication: Handled via Auth0 Universal Login (express-openid-connect), creating an authenticated OIDC session and verifying claims.
-2. First-Party API (/api/user/preferences): Protected endpoint querying internal user records keyed to the authenticated user ID (sub).
-3. Third-Party API Integration (Open-Meteo): Chains authenticated context by dynamically querying live weather telemetry using coordinates retrieved from the user's first-party profile.
-4. Context-Preserving Assistant (/api/assistant/briefing): Fuses authenticated identity claims, internal preferences, and external public API data into a single coherent response payload.
+## Features & Implementation
+1. Auth0 Universal Login: Authenticates users and establishes verified OIDC session identity.
+2. Fine-Grained Authorization (FGA) Model:
+   - Defines relationship tuples (`user -> has_role -> role` and `role -> can_view -> document`).
+   - ReBAC evaluation checks user permissions against candidate vector chunks.
+3. Pre-Retrieval Policy Enforcement:
+   - Managers possess `can_view` for sensitive executive compensation documents (`doc:executive_salaries_2026`).
+   - General employees are restricted to non-sensitive records (`doc:engineering_architecture_roadmap`, `doc:standard_leave_policy`).
+   - Unauthorized documents are culled from the retrieval set prior to LLM synthesis, preventing prompt leakage.
 
 ## Setup & Running
-1. Clone the repository and install dependencies:
+1. Install dependencies:
    npm install
-2. Configure .env based on .env.example with your Auth0 Domain and Client ID:
+2. Configure .env with your Auth0 credentials:
    ISSUER_BASE_URL=https://dev-qws72xhqw0o5utub.us.auth0.com
    CLIENT_ID=ntW1vkdBP5B8vmiu5DH7Gi6jKuMQFB1S
    SECRET=your_32_char_secret
@@ -19,4 +23,4 @@ An identity-aware personal assistant web application built with Express and Auth
    PORT=3000
 3. Start the application:
    node server.js
-4. Navigate to http://localhost:3000, authenticate, and trigger the assistant dispatch.
+4. Access http://localhost:3000 and test queries across Manager and Employee personas.
